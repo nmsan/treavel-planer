@@ -1,103 +1,125 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Box, Typography, Container } from '@mui/material';
+import Header from '@/components/Header';
+import SearchBar from '@/components/SearchBar';
+import UserProfiles from '@/components/UserProfiles';
+
+interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  location: string;
+  state: string;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [searchResult, setSearchResult] = useState('');
+  const [loading, setLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  useEffect(() => {
+    // Load users from the Next.js API route
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/users');
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        const data = await response.json();
+        setUsers(data);
+        setFilteredUsers(data);
+      } catch (error) {
+        console.error('Error loading users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleSearch = (term: string) => {
+    if (!term.trim()) {
+      setFilteredUsers(users);
+      setSearchResult('');
+      return;
+    }
+
+    const searchTerm = term.toLowerCase().trim();
+    
+    const filtered = users.filter(user => {
+      const firstName = user.firstName.toLowerCase();
+      const lastName = user.lastName.toLowerCase();
+      const location = user.location.toLowerCase();
+      const state = user.state.toLowerCase();
+      
+      // Check if search term matches first name, last name, location, or state
+      return firstName.includes(searchTerm) ||
+             lastName.includes(searchTerm) ||
+             location.includes(searchTerm) ||
+             state.includes(searchTerm);
+    });
+
+    setFilteredUsers(filtered);
+    
+    // Set search result display text
+    if (filtered.length > 0) {
+      // Check if any user's location or state contains the search term
+      const hasLocationOrStateMatch = filtered.some(user => {
+        const location = user.location.toLowerCase();
+        const state = user.state.toLowerCase();
+        return location.includes(searchTerm) || state.includes(searchTerm);
+      });
+      
+      if (hasLocationOrStateMatch) {
+        setSearchResult(term);
+      } else {
+        setSearchResult('');
+      }
+    } else {
+      setSearchResult('');
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ minHeight: '100vh', backgroundColor: 'white' }}>
+        <Header />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+          <Typography variant="h6" sx={{ color: '#666' }}>
+            Loading users...
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ minHeight: '100vh', backgroundColor: 'white' }}>
+      <Header />
+      <SearchBar onSearch={handleSearch} />
+      {searchResult && (
+        <Box sx={{ backgroundColor: '#f5f5f5', py: 3 }}>
+          <Container maxWidth="lg">
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                textAlign: 'center', 
+                color: '#000',
+                fontFamily: 'Open Sans, sans-serif',
+                fontWeight: 600
+              }}
+            >
+              {searchResult}
+            </Typography>
+          </Container>
+        </Box>
+      )}
+      <UserProfiles users={filteredUsers} />
+    </Box>
   );
 }

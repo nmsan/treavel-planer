@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Travel Planner
+
+A functional Next.js application that replicates the Travel Planner mock-up design. This application allows users to search for travel companions by first name, last name, or location.
+
+## Author
+Asanka Nawarathna
+## Technology Stack
+
+- **Next.js 15** - React framework with API routes
+- **TypeScript** - Type safety
+- **Material-UI (MUI) 7** - Component library and styling
+- **Open Sans** - Typography
+- **Emotion** - CSS-in-JS styling engine
+- **MongoDB** - NoSQL database
+- **Mongoose** - MongoDB ODM for Node.js
+- **Next.js API Routes** - Backend endpoints for user data
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- npm or yarn
+- MongoDB (local or cloud)
+
+### MongoDB Setup
+
+#### Option 1: Local MongoDB
+1. Install MongoDB locally:
+   ```bash
+   # macOS with Homebrew
+   brew tap mongodb/brew
+   brew update
+   brew install mongodb-community@8.0
+   
+   # Start MongoDB service
+   brew services start mongodb-community
+   ```
+
+### Environment Configuration
+
+1. Copy the environment template:
+   ```bash
+   cp env.example .env.local
+   ```
+
+2. Update `.env.local` with your MongoDB connection string:
+   ```bash
+   # For local MongoDB
+   MONGODB_URI=mongodb://localhost:27017/travel-planner
+   
+   # For MongoDB Atlas
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/travel-planner?retryWrites=true&w=majority
+   ```
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Seed the database with initial user data: (Start mongodb first)
+   ```bash
+   npm run seed
+   ```
+
+### Development
+
+Run the development server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Structure
 
-## Learn More
+```
+src/
+├── app/
+│   ├── api/
+│   │   └── users/
+│   │       ├── route.ts          # GET /api/users - All users from MongoDB
+│   │       └── search/route.ts   # GET /api/users/search?q=query - Search users in MongoDB
+│   ├── globals.css               # Global styles with Open Sans font
+│   ├── layout.tsx                # Root layout with MUI theme provider
+│   └── page.tsx                  # Main page with search logic
+├── components/
+│   ├── Header.tsx                # Header with title, icon and button
+│   ├── SearchBar.tsx             # Search input with search icon
+│   ├── UserProfiles.tsx          # User profile cards display
+│   └── ThemeRegistry.tsx         # MUI theme configuration
+├── lib/
+│   ├── mongodb.ts                # MongoDB connection utility
+│   └── seed.ts                   # Database seeding script
+└── models/
+    └── User.ts                   # Mongoose User model
+```
 
-To learn more about Next.js, take a look at the following resources:
+## API Endpoints
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **GET /api/users** - Returns all users from MongoDB
+- **GET /api/users/search?q=query** - Returns filtered users from MongoDB based on search query
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database Schema
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### User Model
+```typescript
+interface User {
+  id: number;           // Unique identifier
+  firstName: string;    // User's first name
+  lastName: string;     // User's last name
+  location: string;     // User's city and state abbreviation (e.g., "Miami, FL")
+  state: string;        // Full state name (e.g., "Florida")
+  createdAt: Date;      // Record creation timestamp
+  updatedAt: Date;      // Record update timestamp
+}
+```
